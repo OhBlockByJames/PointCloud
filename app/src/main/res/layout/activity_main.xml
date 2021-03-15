@@ -1,0 +1,53 @@
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.google.ar.core.examples.java.helloar.HelloArActivity">
+
+  <android.opengl.GLSurfaceView
+      android:id="@+id/surfaceview"
+      android:layout_width="fill_parent"
+      android:layout_height="fill_parent"
+      android:layout_gravity="top" />
+
+  <Button
+      android:id="@+id/clean"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_alignParentTop="true"
+      android:layout_marginTop="649dp"
+      android:text="info" />
+
+  <ImageButton
+      android:id="@+id/settings_button"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_alignParentEnd="true"
+      android:layout_alignParentTop="true"
+      android:layout_margin="25dp"
+      android:src="@drawable/ic_settings"
+      android:background="@android:color/transparent"/>
+
+
+  <TextView
+      android:id="@+id/text"
+      android:layout_width="200dp"
+      android:layout_height="650dp"
+      android:scrollbars="vertical"
+      android:singleLine="false"
+      android:maxLines="100"
+  />
+
+  <Button
+      android:id="@+id/get"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_below="@+id/text"
+      android:layout_toRightOf="@+id/clean"
+      android:text="get plane" />
+
+
+
+
+</RelativeLayout>
