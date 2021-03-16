@@ -217,7 +217,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
     //Clean.setOnClickListener(v -> onCleanPressed());
     //Clean.setOnClickListener(v -> getPlane());
     //Clean.setOnClickListener(v -> planeAttr());
-    Clean.setOnClickListener(v ->  getPlanety());
+    Clean.setOnClickListener(v ->  getPlaneinfo());
 
     Get = findViewById(R.id.get);
     Get.setOnClickListener(v -> getAttr());
@@ -1035,15 +1035,14 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
   }
 
 
-  private void getPlanety(){
+  private void getPlaneinfo(){
     Collection<Plane> PlaneNow = session.getAllTrackables(Plane.class);
-    for(Plane pl:PlaneNow){
-      Pose pos=pl.getCenterPose();
-      float positionY = pos.ty();
-      TextArea.append("planeTY: "+positionY+"\n");
-    }
+
 
     for(Plane planes:PlaneNow){
+      Pose pos=planes.getCenterPose();
+      float positionY = pos.ty();
+      TextArea.append("planeTY: "+positionY+"\n");
       FloatBuffer x;
       x = planes.getPolygon();
       float[] z;
