@@ -106,11 +106,18 @@ import java.util.List;
 public class HelloArActivity extends AppCompatActivity implements SampleRender.Renderer {
 
   private static final String TAG = HelloArActivity.class.getSimpleName();
+  public static  Pose CM = null ;
+  public static Pose GHP =null;
 
   //add
   private TextView TextArea;
   private Button Clean;
   private Button Get;
+
+  //add 0315
+
+  public ArrayList<Pose> ObjArr = new ArrayList<>();
+  public ArrayList<Pose> ObjArr2 = new ArrayList<>();
 
 
   private static final String SEARCHING_PLANE_MESSAGE = "Searching for surfaces...";
@@ -208,7 +215,9 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
 
     Clean = findViewById(R.id.clean);
     //Clean.setOnClickListener(v -> onCleanPressed());
-    Clean.setOnClickListener(v -> getPlane());
+    //Clean.setOnClickListener(v -> getPlane());
+    //Clean.setOnClickListener(v -> planeAttr());
+    Clean.setOnClickListener(v ->  getPlanety());
 
     Get = findViewById(R.id.get);
     Get.setOnClickListener(v -> getAttr());
@@ -651,7 +660,9 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
   }
 
   // Handle only one tap per frame, as taps are usually low frequency compared to frame rate.
-  private void handleTap(Frame frame, Camera camera) {
+  //private-->public
+  public void handleTap(Frame frame, Camera camera) {
+
     MotionEvent tap = tapHelper.poll();
     if (tap != null && camera.getTrackingState() == TrackingState.TRACKING) {
       List<HitResult> hitResultList;
@@ -663,6 +674,14 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       }
       for (HitResult hit : hitResultList) {
         // If any plane, Oriented Point, or Instant Placement Point was hit, create an anchor.
+        GHP=hit.getHitPose();
+        CM = camera.getPose();
+
+
+        ObjArr.add(GHP);
+        ObjArr2.add(CM);
+
+
         Trackable trackable = hit.getTrackable();
         // If a plane was hit, check that it was hit inside the plane polygon.
         if ((trackable instanceof Plane
@@ -677,28 +696,40 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
           if (anchors.size() >= 20) {
             anchors.get(0).detach();
             anchors.remove(0);
-
           }
-
           // Adding an Anchor tells ARCore that it should track this position in
           // space. This anchor is created on the Plane to place the 3D model
           // in the correct position relative both to the world and to the plane.
           anchors.add(hit.createAnchor());
           //add
-          String planemsg;
-          planemsg = planeRenderer.toString();
+          //String planemsg;
+          //planemsg = planeRenderer.toString();
           //TextArea.setText(planemsg);
-
           //TextArea.setText("Anchors on screen: "+anchors.size());
           // For devices that support the Depth API, shows a dialog to suggest enabling
           // depth-based occlusion. This dialog needs to be spawned on the UI thread.
           this.runOnUiThread(this::showOcclusionDialogIfNeeded);
-
           // Hits are sorted by depth. Consider only closest hit on a plane, Oriented Point, or
           // Instant Placement Point.
           break;
         }
       }
+    }
+  }
+
+  //new
+  public void planeAttr() {
+    float x=0;
+    float elements = 0;
+    ArrayList saveY = new ArrayList();
+    for (int z=0;z<ObjArr.size();z++){
+      x= PlaneRenderer.calculatePlane(ObjArr.get(z), ObjArr2.get(z));
+      saveY.add(x);
+    }
+//    x = PlaneRenderer.calculatePlane(GHP, CM);
+//    saveY.add(x);
+    for (int i=0;i<saveY.size();i++){
+      TextArea.setText(""+saveY.get(i));
     }
   }
 
@@ -880,14 +911,8 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
 //
 //    }
     // Clear the anchor from the scene.
-
-
-    
     anchors.clear();
     TextArea.setText("all clear");
-
-
-
   }
 
   public void getPlane(){
@@ -923,6 +948,9 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
     TextArea.setText(""+getSavedArrayList());
   }
 
+
+
+
   public void getAttr(){
 
     ArrayList xz = new ArrayList();
@@ -930,7 +958,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
     Collection<Plane> y = session.getAllTrackables(Plane.class);
     //Plane plane = (Plane) session.getAllTrackables(Plane.class);
     for(Plane planes:y){
-      TextArea.append("\n"+"New");
+
       FloatBuffer x;
       x = planes.getPolygon();
       float[] z;
@@ -1005,6 +1033,32 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       e.printStackTrace();
     }
   }
+
+
+  private void getPlanety(){
+    Collection<Plane> PlaneNow = session.getAllTrackables(Plane.class);
+    for(Plane pl:PlaneNow){
+      Pose pos=pl.getCenterPose();
+      float positionY = pos.ty();
+      TextArea.append("planeTY: "+positionY+"\n");
+    }
+
+    for(Plane planes:PlaneNow){
+      FloatBuffer x;
+      x = planes.getPolygon();
+      float[] z;
+      z = x.array();
+      for (float elements:z){
+        TextArea.append("polygon: "+elements+"\n");
+      }
+    }
+  }
+
+
+
+
+
+
   /** Configures the session with feature settings. */
   private void configureSession() {
     Config config = session.getConfig();

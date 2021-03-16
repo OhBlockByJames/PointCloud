@@ -313,6 +313,7 @@ public class PlaneRenderer {
     float[] normal = new float[3];
     float cameraX = cameraPose.tx();
     float cameraY = cameraPose.ty();
+  //cameraPose
     float cameraZ = cameraPose.tz();
     // Get transformed Y axis of plane's coordinate system.
     planePose.getTransformedAxis(1, 1.0f, normal, 0);
@@ -321,4 +322,12 @@ public class PlaneRenderer {
         + (cameraY - planePose.ty()) * normal[1]
         + (cameraZ - planePose.tz()) * normal[2];
   }
+//add 0315
+  public static float calculatePlane(Pose planePose, Pose cameraPose) {
+    float[] normal = new float[3];
+    float cameraY = cameraPose.ty();
+    return  cameraY - planePose.ty() * normal[1];
+  }
+
+
 }
