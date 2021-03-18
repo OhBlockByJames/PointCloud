@@ -485,10 +485,6 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
   public void onSurfaceChanged(SampleRender render, int width, int height) {
     displayRotationHelper.onSurfaceChanged(width, height);
     virtualSceneFramebuffer.resize(width, height);
-
-
-
-
   }
 
   @Override
@@ -625,22 +621,15 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
         session.getAllTrackables(Plane.class),
         camera.getDisplayOrientedPose(),
         projectionMatrix);
-
-
-
     // -- Draw occluded virtual objects
-
     // Update lighting parameters in the shader
     updateLightEstimation(frame.getLightEstimate(), viewMatrix);
-
     // Visualize anchors created by touch.
-
     render.clear(virtualSceneFramebuffer, 0f, 0f, 0f, 0f);
     for (Anchor anchor : anchors) {
       if (anchor.getTrackingState() != TrackingState.TRACKING) {
         continue;
       }
-
       // Get the current pose of an Anchor in world space. The Anchor pose is updated
       // during calls to session.update() as ARCore refines its estimate of the world.
       anchor.getPose().toMatrix(modelMatrix, 0);
@@ -702,9 +691,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
           // in the correct position relative both to the world and to the plane.
           anchors.add(hit.createAnchor());
           //add
-          //String planemsg;
-          //planemsg = planeRenderer.toString();
-          //TextArea.setText(planemsg);
+
           //TextArea.setText("Anchors on screen: "+anchors.size());
           // For devices that support the Depth API, shows a dialog to suggest enabling
           // depth-based occlusion. This dialog needs to be spawned on the UI thread.
@@ -1042,12 +1029,13 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
     for(Plane planes:PlaneNow){
       Pose pos=planes.getCenterPose();
       float positionY = pos.ty();
-      TextArea.append("planeTY: "+positionY+"\n");
+      TextArea.append("TY: "+positionY+"\n");
       FloatBuffer x;
       x = planes.getPolygon();
       float[] z;
       z = x.array();
       for (float elements:z){
+
         TextArea.append("polygon: "+elements+"\n");
       }
     }
