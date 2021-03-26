@@ -26,6 +26,7 @@ import android.opengl.GLES30;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.MenuItem;
@@ -217,9 +218,10 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
     //Clean.setOnClickListener(v -> onCleanPressed());
     //Clean.setOnClickListener(v -> getPlane());
     //Clean.setOnClickListener(v -> planeAttr());
-    Clean.setOnClickListener(v ->  getPlaneinfo());
+    Clean.setOnClickListener(v ->  createTouchEvent());
 
     Get = findViewById(R.id.get);
+
     Get.setOnClickListener(v -> getAttr());
 
     displayRotationHelper = new DisplayRotationHelper(/*context=*/ this);
@@ -379,6 +381,8 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       finish();
     }
   }
+
+
 
   @Override
   public void onWindowFocusChanged(boolean hasFocus) {
@@ -566,10 +570,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
     } else if (hasTrackingPlane()) {
       if (anchors.isEmpty()) {
         message = WAITING_FOR_TAP_MESSAGE;
-
 //        TextArea.setText("TAP TO ADD");
-
-
       }
     } else {
       message = SEARCHING_PLANE_MESSAGE;
@@ -597,11 +598,8 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
     // -- Draw non-occluded virtual objects (planes, point cloud)
     // Get projection matrix.
     camera.getProjectionMatrix(projectionMatrix, 0, Z_NEAR, Z_FAR);
-
-
     // Get camera matrix and draw.
     camera.getViewMatrix(viewMatrix, 0);
-
     // Visualize tracked points.
     // Use try-with-resources to automatically release the point cloud.
     try (PointCloud pointCloud = frame.acquirePointCloud()) {
@@ -612,9 +610,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       Matrix.multiplyMM(modelViewProjectionMatrix, 0, projectionMatrix, 0, viewMatrix, 0);
       pointCloudShader.setMat4("u_ModelViewProjection", modelViewProjectionMatrix);
       render.draw(pointCloudMesh, pointCloudShader);
-
     }
-
     // Visualize planes.
     planeRenderer.drawPlanes(
         render,
@@ -626,6 +622,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
     updateLightEstimation(frame.getLightEstimate(), viewMatrix);
     // Visualize anchors created by touch.
     render.clear(virtualSceneFramebuffer, 0f, 0f, 0f, 0f);
+    //anchors.toArray();
     for (Anchor anchor : anchors) {
       if (anchor.getTrackingState() != TrackingState.TRACKING) {
         continue;
@@ -633,25 +630,20 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       // Get the current pose of an Anchor in world space. The Anchor pose is updated
       // during calls to session.update() as ARCore refines its estimate of the world.
       anchor.getPose().toMatrix(modelMatrix, 0);
-
       // Calculate model/view/projection matrices
       Matrix.multiplyMM(modelViewMatrix, 0, viewMatrix, 0, modelMatrix, 0);
       Matrix.multiplyMM(modelViewProjectionMatrix, 0, projectionMatrix, 0, modelViewMatrix, 0);
-
       // Update shader properties and draw
       virtualObjectShader.setMat4("u_ModelView", modelViewMatrix);
       virtualObjectShader.setMat4("u_ModelViewProjection", modelViewProjectionMatrix);
       render.draw(virtualObjectMesh, virtualObjectShader, virtualSceneFramebuffer);
     }
-
     // Compose the virtual scene with the background.
     backgroundRenderer.drawVirtualScene(render, virtualSceneFramebuffer, Z_NEAR, Z_FAR);
   }
-
   // Handle only one tap per frame, as taps are usually low frequency compared to frame rate.
   //private-->public
   public void handleTap(Frame frame, Camera camera) {
-
     MotionEvent tap = tapHelper.poll();
     if (tap != null && camera.getTrackingState() == TrackingState.TRACKING) {
       List<HitResult> hitResultList;
@@ -663,14 +655,10 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       }
       for (HitResult hit : hitResultList) {
         // If any plane, Oriented Point, or Instant Placement Point was hit, create an anchor.
-        GHP=hit.getHitPose();
+        GHP = hit.getHitPose();
         CM = camera.getPose();
-
-
         ObjArr.add(GHP);
         ObjArr2.add(CM);
-
-
         Trackable trackable = hit.getTrackable();
         // If a plane was hit, check that it was hit inside the plane polygon.
         if ((trackable instanceof Plane
@@ -681,17 +669,28 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
                     == OrientationMode.ESTIMATED_SURFACE_NORMAL)
             || (trackable instanceof InstantPlacementPoint)) {
           // Cap the number of objects created. This avoids overloading both the
-          // rendering system and ARCore.
-          if (anchors.size() >= 20) {
-            anchors.get(0).detach();
-            anchors.remove(0);
-          }
+//          // rendering system and ARCore.
+//          if (anchors.size() >= 20) {
+//            anchors.get(0).detach();
+//            anchors.remove(0);
+//          }
           // Adding an Anchor tells ARCore that it should track this position in
           // space. This anchor is created on the Plane to place the 3D model
           // in the correct position relative both to the world and to the plane.
-          anchors.add(hit.createAnchor());
-          //add
 
+          ArrayList<String> AnchorPose = new ArrayList<>();
+          if (anchors.size() >= 10) {
+            anchors.get(0).detach();
+//            for (int count=0;count<=anchors.size();count++){
+//              TextArea.append("Anchors no. "+count);
+//            }
+
+            TextArea.append(anchors.get(0).getPose()+"\n");
+            AnchorPose.add(anchors.get(0).getPose()+"\n");
+            savePolygon(AnchorPose);
+            anchors.remove(0);
+          }
+          anchors.add(hit.createAnchor());
           //TextArea.setText("Anchors on screen: "+anchors.size());
           // For devices that support the Depth API, shows a dialog to suggest enabling
           // depth-based occlusion. This dialog needs to be spawned on the UI thread.
@@ -931,41 +930,46 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
         xyz.add(elements3);
       }
     }
-    saveArrayList(xyz);
-    TextArea.setText(""+getSavedArrayList());
+    //saveArrayList(xyz);
+    //TextArea.setText(""+getSavedArrayList());
   }
 
 
 
 
   public void getAttr(){
+    TextArea.setText("");
 
-    ArrayList xz = new ArrayList();
-    xz.add(new String("Polygon"));
-    Collection<Plane> y = session.getAllTrackables(Plane.class);
-    //Plane plane = (Plane) session.getAllTrackables(Plane.class);
-    for(Plane planes:y){
+    System.exit(0);
 
-      FloatBuffer x;
-      x = planes.getPolygon();
-      float[] z;
-      z = x.array();
-      for (float elements:z){
-        TextArea.append("\n"+elements);
-        xz.add(elements);
-      }
-    }
-    savePolygon(xz);
-    TextArea.setText(""+getPolygonData());
+
+
+//    ArrayList xz = new ArrayList();
+//    xz.add(new String("Polygon"));
+//    Collection<Plane> y = session.getAllTrackables(Plane.class);
+//    //Plane plane = (Plane) session.getAllTrackables(Plane.class);
+//    for(Plane planes:y){
+//
+//      FloatBuffer x;
+//      x = planes.getPolygon();
+//      float[] z;
+//      z = x.array();
+//      for (float elements:z){
+//        TextArea.append("\n"+elements);
+//        xz.add(elements);
+//      }
+//    }
+//    savePolygon(xz);
+//    TextArea.setText(""+getPolygonData());
   }
 
-  private ArrayList<String> getSavedArrayList() {
-    ArrayList<String> savedArrayList = null;
+  private ArrayList<Anchor> getSavedArrayList() {
+    ArrayList<Anchor> savedArrayList = null;
 
     try {
       FileInputStream inputStream = openFileInput("test.json");
       ObjectInputStream in = new ObjectInputStream(inputStream);
-      savedArrayList = (ArrayList<String>) in.readObject();
+      savedArrayList = (ArrayList<Anchor>) in.readObject();
       in.close();
       inputStream.close();
 
@@ -1007,7 +1011,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
     }
   }
 
-  private void saveArrayList(ArrayList<String> arrayList) {
+  private void saveArrayList(ArrayList<Anchor> arrayList) {
 
     try {
       FileOutputStream fileOutputStream = openFileOutput("test.json", Context.MODE_PRIVATE);
@@ -1034,11 +1038,47 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       x = planes.getPolygon();
       float[] z;
       z = x.array();
+
       for (float elements:z){
 
         TextArea.append("polygon: "+elements+"\n");
       }
+
     }
+  }
+
+  private void createTouchEvent(){
+    SurfaceView sfv = (SurfaceView) findViewById(R.id.surfaceview);
+    int w=sfv.getWidth();
+    int h=sfv.getHeight();
+    for(int width=0;width<=w;width++){
+      for(int height=0;height<=h;height++){
+        long downTime = SystemClock.uptimeMillis();
+        long eventTime = SystemClock.uptimeMillis()+100;
+        int action = MotionEvent.ACTION_UP;
+        int metaState = 0;
+        MotionEvent event = MotionEvent.obtain(downTime, eventTime, action, width, height, metaState);
+        sfv.dispatchTouchEvent(event);
+
+//        ArrayList<String> AnchorPose = new ArrayList<>();
+//        if(anchors.size()>=20){
+//
+//          try {
+//            for (int i = 0;i<=anchors.size();i++){
+//              AnchorPose.add(anchors.get(i).getPose()+"\n");
+//            }
+//          }
+//          catch (IndexOutOfBoundsException error) {
+//            TextArea.setText("ERROR!!!");
+//          }
+//          savePolygon(AnchorPose);
+//          anchors.removeAll(AnchorPose);
+//          //anchors.clear();
+//        }
+
+      }
+    }
+
   }
 
 
