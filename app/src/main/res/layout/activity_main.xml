@@ -17,7 +17,7 @@
       android:layout_height="wrap_content"
       android:layout_alignParentTop="true"
       android:layout_marginTop="649dp"
-      android:text="info" />
+      android:text="AUTO SCAN" />
 
   <ImageButton
       android:id="@+id/settings_button"
@@ -45,7 +45,7 @@
       android:layout_height="wrap_content"
       android:layout_below="@+id/text"
       android:layout_toRightOf="@+id/clean"
-      android:text="get plane" />
+      android:text="Exit" />
 
 
 

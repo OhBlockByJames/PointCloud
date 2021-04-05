@@ -107,8 +107,7 @@ import java.util.List;
 public class HelloArActivity extends AppCompatActivity implements SampleRender.Renderer {
 
   private static final String TAG = HelloArActivity.class.getSimpleName();
-  public static  Pose CM = null ;
-  public static Pose GHP =null;
+
 
   //add
   private TextView TextArea;
@@ -119,6 +118,15 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
 
   public ArrayList<Pose> ObjArr = new ArrayList<>();
   public ArrayList<Pose> ObjArr2 = new ArrayList<>();
+
+
+  private String camPose;
+  private String camProMatrix;
+  private String camViewMatrix;
+  private String moProViewMatrix;
+  private String moViewMatrix;
+  private String disOriPose;
+  private String camInversePose;
 
 
   private static final String SEARCHING_PLANE_MESSAGE = "Searching for surfaces...";
@@ -222,7 +230,8 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
 
     Get = findViewById(R.id.get);
 
-    Get.setOnClickListener(v -> getAttr());
+    //Get.setOnClickListener(v -> getAttr());
+    Get.setOnClickListener(v -> getPlane());
 
     displayRotationHelper = new DisplayRotationHelper(/*context=*/ this);
 
@@ -655,10 +664,7 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       }
       for (HitResult hit : hitResultList) {
         // If any plane, Oriented Point, or Instant Placement Point was hit, create an anchor.
-        GHP = hit.getHitPose();
-        CM = camera.getPose();
-        ObjArr.add(GHP);
-        ObjArr2.add(CM);
+
         Trackable trackable = hit.getTrackable();
         // If a plane was hit, check that it was hit inside the plane polygon.
         if ((trackable instanceof Plane
@@ -691,6 +697,26 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
             anchors.remove(0);
           }
           anchors.add(hit.createAnchor());
+
+
+          camPose = camera.getPose().toString();
+
+          //storage for at least 16 floats representing a 4x4 matrix in column major order,0
+          camProMatrix = projectionMatrix.toString();
+          camViewMatrix = viewMatrix.toString();
+          //moProViewMatrix = modelViewProjectionMatrix.toString();
+          disOriPose = camera.getDisplayOrientedPose().toString();
+          camInversePose=camera.getPose().inverse().toString();
+
+          TextArea.append("camPose : " + camPose+"\n");
+          //TextArea.append("camProMatrix : " + camProMatrix+"\n");
+          //TextArea.append("camViewMatrix : " + camViewMatrix+"\n");
+          //TextArea.append("modelViewProjectionMatrix : " + moProViewMatrix+"\n");
+          //TextArea.append("modelViewMatrix : " + moViewMatrix+"\n");
+          TextArea.append("Camera display oriented pose : "+ disOriPose+"\n");
+          TextArea.append("camera inverse pose: " + camInversePose + "\n");
+
+
           //TextArea.setText("Anchors on screen: "+anchors.size());
           // For devices that support the Depth API, shows a dialog to suggest enabling
           // depth-based occlusion. This dialog needs to be spawned on the UI thread.
@@ -912,12 +938,12 @@ public class HelloArActivity extends AppCompatActivity implements SampleRender.R
       float[] gt = planePose.getTranslation();
       for (float elements:gt){
         TextArea.append("\n"+elements);
-        //xyz.add(elements);
       }
       float[] ppX = planePose.getXAxis();
       for (float elements:ppX){
         TextArea.append("\n"+"X:"+elements);
         xyz.add(elements);
+
       }
       float[] ppY = planePose.getYAxis();
       for (float elements2:ppY){
